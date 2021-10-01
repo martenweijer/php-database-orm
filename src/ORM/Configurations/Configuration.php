@@ -6,5 +6,5 @@ use Electronics\Database\ORM\Mappings\EntityMap;
 
 interface Configuration
 {
-    function retrieveEntityMap(string|\stdClass $entity): EntityMap;
+    function retrieveEntityMap(string|object $entity): EntityMap;
 }

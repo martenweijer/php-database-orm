@@ -8,5 +8,6 @@ use Electronics\Database\DBAL\BuilderFactory;
 interface Connection
 {
     function execute(Builder $builder): \PDOStatement;
+    function retrieveLastInsertId(): string;
     function getBuilderFactory(): BuilderFactory;
 }

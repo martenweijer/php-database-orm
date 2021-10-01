@@ -25,7 +25,7 @@ class MysqlSelectBuilder implements SelectBuilder
 
     public function generateSql(): string
     {
-        $sql = 'select * from '. $this->table;
+        $sql = "select * from `$this->table`";
 
         if ($this->whereConstraints) {
             $sql .= ' where '. implode($this->whereConstraints);
@@ -61,7 +61,7 @@ class MysqlSelectBuilder implements SelectBuilder
 
     public function orderBy(string $column, OrderType $orderType): static
     {
-        $this->orderBy[] = $column . match ($orderType) {
+        $this->orderBy[] = "`$column`" . match ($orderType) {
             OrderType::ASC => ' asc',
             OrderType::DESC => ' desc',
         };

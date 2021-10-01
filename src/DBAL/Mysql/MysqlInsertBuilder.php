@@ -21,10 +21,10 @@ class MysqlInsertBuilder implements InsertBuilder
 
     public function generateSql(): string
     {
-        $keys = implode(', ', array_keys($this->values));
+        $keys = implode(', ', array_map(fn(string $key): string => "`$key`", array_keys($this->values)));
         $values = implode(', ', array_values($this->values));
 
-        return "insert into $this->table ($keys) values ($values)";
+        return "insert into `$this->table` ($keys) values ($values)";
     }
 
     public function getParameters(): array
@@ -32,7 +32,7 @@ class MysqlInsertBuilder implements InsertBuilder
         return $this->parameterFactory->getParameters();
     }
 
-    public function add(string $column, float|int|string $value): static
+    public function add(string $column, string|int|float|null $value): static
     {
         $this->values[$column] = $this->parameterFactory->generateParameter($value);
         return $this;

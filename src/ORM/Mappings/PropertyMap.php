@@ -34,8 +34,17 @@ class PropertyMap
         return $this->columnType;
     }
 
-    public function setValue($entity, mixed $value): void
+    public function setValue(object $entity, mixed $value): void
     {
         $this->reflectionProperty->setValue($entity, $value);
+    }
+
+    public function getValue(object $entity): string|float|int|\DateTime|null
+    {
+        if (!$this->reflectionProperty->isInitialized($entity)) {
+            return null;
+        }
+
+        return $this->reflectionProperty->getValue($entity);
     }
 }

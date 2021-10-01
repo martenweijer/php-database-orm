@@ -7,12 +7,13 @@ use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
 use Electronics\Database\ORM\Mappings\EntityMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
+use Electronics\Database\ORM\Typings\ColumnType;
 
 class AnnotationConfiguration implements Configuration
 {
     protected array $entityMaps = [];
 
-    public function retrieveEntityMap(string|\stdClass $entity): EntityMap
+    public function retrieveEntityMap(string|object $entity): EntityMap
     {
         $className = $this->convertToClassName($entity);
 
@@ -57,7 +58,7 @@ class AnnotationConfiguration implements Configuration
                 $annotation = $attribute->newInstance();
                 $entityMap->addProperty(new PropertyMap($reflectionProperty->getName(),
                     $annotation->value ?? $reflectionProperty->getName(),
-                    $annotation->columnType, $reflectionProperty));
+                    $this->convertPropertyToColumnType($reflectionProperty), $reflectionProperty));
             }
 
             elseif ($attribute->getName() === Id::class) {
@@ -66,12 +67,12 @@ class AnnotationConfiguration implements Configuration
                 $annotation = $attribute->newInstance();
                 $entityMap->setIdentity(new PropertyMap($reflectionProperty->getName(),
 					$annotation->value ?? $reflectionProperty->getName(),
-                    $annotation->columnType, $reflectionProperty));
+                    $this->convertPropertyToColumnType($reflectionProperty), $reflectionProperty));
             }
         }
     }
 
-    protected function convertToClassName(string|\stdClass $entity): string
+    protected function convertToClassName(string|object $entity): string
     {
         if (is_string($entity)) {
             return $entity;
@@ -83,5 +84,20 @@ class AnnotationConfiguration implements Configuration
         }
 
         throw new \InvalidArgumentException(sprintf('Could not convert variable of type "%s" to string', gettype($entity)));
+    }
+
+    protected function convertPropertyToColumnType(\ReflectionProperty $property): ColumnType
+    {
+        if ($property->hasType()) {
+            return match ($property->getType()->getName()) {
+                'int' => ColumnType::INT,
+                'float' => ColumnType::FLOAT,
+                'bool' => ColumnType::BOOL,
+                'DateTime' => ColumnType::DATETIME,
+                default => ColumnType::STRING
+            };
+        }
+
+        return ColumnType::STRING;
     }
 }

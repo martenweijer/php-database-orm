@@ -6,5 +6,6 @@ use Electronics\Database\ORM\Mappings\PropertyMap;
 
 interface ValueConverter
 {
-    function convert(mixed $value, PropertyMap $propertyMap): mixed;
+    function convertFromSqlValue(mixed $value, PropertyMap $propertyMap): mixed;
+    function convertToSqlValue(mixed $value, PropertyMap $propertyMap): int|string|null;
 }

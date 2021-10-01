@@ -13,7 +13,7 @@ class MysqlUpdateBuilderTest extends TestCase
         $builder->set('username', 'foo')
             ->set('password', 'bar')
             ->set('email', 'foo@bar.com');
-        $this->assertEquals('update users set username = :param_0, password = :param_1, email = :param_2', $builder->generateSql());
+        $this->assertEquals('update `users` set `username` = :param_0, `password` = :param_1, `email` = :param_2', $builder->generateSql());
     }
 
     function testConstraints(): void
@@ -23,6 +23,6 @@ class MysqlUpdateBuilderTest extends TestCase
             ->set('password', 'bar')
             ->set('email', 'foo@bar.com')
             ->addConstraint(new Equals('username', 'test'));
-        $this->assertEquals('update users set username = :param_0, password = :param_1, email = :param_2 where username = :param_3', $builder->generateSql());
+        $this->assertEquals('update `users` set `username` = :param_0, `password` = :param_1, `email` = :param_2 where `username` = :param_3', $builder->generateSql());
     }
 }

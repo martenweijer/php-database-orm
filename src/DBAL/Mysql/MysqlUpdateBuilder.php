@@ -23,7 +23,7 @@ class MysqlUpdateBuilder implements UpdateBuilder
 
     public function generateSql(): string
     {
-        $sql = 'update '. $this->table;
+        $sql = "update `$this->table`";
 
         $sql .= ' set '. implode(', ', $this->values);
 
@@ -47,7 +47,7 @@ class MysqlUpdateBuilder implements UpdateBuilder
 
     public function set(string $column, float|int|string $value): static
     {
-        $this->values[] = $column .' = '. $this->parameterFactory->generateParameter($value);
+        $this->values[] = "`$column` = ". $this->parameterFactory->generateParameter($value);
         return $this;
     }
 }

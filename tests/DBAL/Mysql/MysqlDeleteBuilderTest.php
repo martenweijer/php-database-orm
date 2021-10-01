@@ -11,6 +11,6 @@ class MysqlDeleteBuilderTest extends TestCase
     {
         $builder = new MysqlDeleteBuilder('users');
         $builder->addConstraint(new Equals('id', 1));
-        $this->assertEquals('delete from users where id = :param_0', $builder->generateSql());
+        $this->assertEquals('delete from `users` where `id` = :param_0', $builder->generateSql());
     }
 }

@@ -15,7 +15,7 @@ class SimpleParameterFactory implements ParameterFactory
         $this->count = $count;
     }
 
-    public function generateParameter(float|int|string $value): string
+    public function generateParameter(string|int|float|null $value): string
     {
         $key = ':'. $this->prefix . $this->count++;
         $this->parameters[$key] = $value;
