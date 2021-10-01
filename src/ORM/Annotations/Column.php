@@ -8,11 +8,9 @@ use Electronics\Database\ORM\Typings\ColumnType;
 class Column
 {
     public ?string $value;
-    public ColumnType $columnType;
 
-    public function __construct(string $value = null, ColumnType $columnType = ColumnType::STRING)
+    public function __construct(string $value = null)
     {
         $this->value = $value;
-        $this->columnType = $columnType;
     }
 }

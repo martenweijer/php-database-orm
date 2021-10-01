@@ -6,7 +6,7 @@ use Electronics\Database\ORM\Mappings\PropertyMap;
 
 class SimpleValueConverter implements ValueConverter
 {
-    public function convert(mixed $value, PropertyMap $propertyMap): mixed
+    public function convertFromSqlValue(mixed $value, PropertyMap $propertyMap): mixed
     {
         $type = $propertyMap->getColumnType();
 
@@ -14,8 +14,30 @@ class SimpleValueConverter implements ValueConverter
             ColumnType::STRING => $value,
             ColumnType::INT => (int) $value,
             ColumnType::FLOAT => (float) $value,
-            ColumnType::DATE => new \DateTime($value),
-            ColumnType::DATETIME => new \DateTime($value),
+            ColumnType::BOOL => $value == true || $value == 1 || $value == '1',
+            ColumnType::DATETIME => $value ? new \DateTime($value) : null,
+            default => throw new \InvalidArgumentException(sprintf('Unknown Column Type "%s" for property "%s".', $type->name, $propertyMap->getName()))
         };
+    }
+
+    public function convertToSqlValue(mixed $value, PropertyMap $propertyMap): int|string|null
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        if ($propertyMap->getColumnType() === ColumnType::DATETIME) {
+            if (!($value instanceof \DateTime)) {
+                throw new \InvalidArgumentException(sprintf('Value "%s" is not of type DateTime.', $value));
+            }
+
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        if ($propertyMap->getColumnType() === ColumnType::BOOL) {
+            return $value ? 1 : 0;
+        }
+
+        return $value;
     }
 }

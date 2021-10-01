@@ -8,4 +8,7 @@ interface EntityManager
 {
     function find(string $entityClass, mixed $identifier): object;
     function load(string $entityClass): Repository;
+
+    function add(object $entity): void;
+    function save(object $entity = null): void;
 }

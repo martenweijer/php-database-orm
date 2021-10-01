@@ -12,6 +12,6 @@ class MysqlInsertBuilderTest extends TestCase
         $builder->add('username', 'foo')
             ->add('password', 'bar')
             ->add('email', 'test@test.com');
-        $this->assertEquals('insert into users (username, password, email) values (:param_0, :param_1, :param_2)', $builder->generateSql());
+        $this->assertEquals('insert into `users` (`username`, `password`, `email`) values (:param_0, :param_1, :param_2)', $builder->generateSql());
     }
 }

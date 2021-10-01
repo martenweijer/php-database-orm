@@ -22,7 +22,7 @@ class MysqlDeleteBuilder implements DeleteBuilder
 
     public function generateSql(): string
     {
-        $sql = 'delete from '. $this->table;
+        $sql = "delete from `$this->table`";
 
         if ($this->whereConstraints) {
             $sql .= ' where '. implode($this->whereConstraints);

@@ -15,7 +15,7 @@ class In implements Constraint
 
     public function generateSql(ParameterFactory $factory): string
     {
-        $sql = $this->column .' in (';
+        $sql = "`$this->column` in (";
         $values = [];
         foreach ($this->values as $value) {
             $values[] = $factory->generateParameter($value);

@@ -15,6 +15,6 @@ class Equals implements Constraint
 
     public function generateSql(ParameterFactory $factory): string
     {
-        return $this->column .' = '. $factory->generateParameter($this->value);
+        return "`$this->column` = ". $factory->generateParameter($this->value);
     }
 }

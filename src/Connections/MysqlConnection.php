@@ -31,6 +31,11 @@ class MysqlConnection extends PDO implements Connection
         return $statement;
     }
 
+    public function retrieveLastInsertId(): string
+    {
+        return $this->lastInsertId();
+    }
+
     public function getBuilderFactory(): BuilderFactory
     {
         return $this->builderFactory;

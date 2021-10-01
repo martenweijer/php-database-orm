@@ -21,7 +21,7 @@ class AnnotationConfigurationTest extends TestCase
         $this->assertEquals('id', $entityMap->getIdentity()->getName());
         $this->assertEquals('id', $entityMap->getIdentity()->getColumn());
 
-        $this->assertEquals(2, count($entityMap->getProperties()));
+        $this->assertEquals(7, count($entityMap->getProperties()));
 
         $username = $entityMap->getProperty('username');
         $this->assertEquals('username', $username->getName());
@@ -32,6 +32,21 @@ class AnnotationConfigurationTest extends TestCase
         $this->assertEquals('rank', $rank->getName());
         $this->assertEquals('rank', $rank->getColumn());
         $this->assertEquals(ColumnType::INT, $rank->getColumnType());
+
+        $rank = $entityMap->getProperty('float');
+        $this->assertEquals(ColumnType::FLOAT, $rank->getColumnType());
+
+        $rank = $entityMap->getProperty('string');
+        $this->assertEquals(ColumnType::STRING, $rank->getColumnType());
+
+        $rank = $entityMap->getProperty('isActive');
+        $this->assertEquals(ColumnType::BOOL, $rank->getColumnType());
+
+        $rank = $entityMap->getProperty('rank2');
+        $this->assertEquals(ColumnType::INT, $rank->getColumnType());
+
+        $rank = $entityMap->getProperty('date');
+        $this->assertEquals(ColumnType::DATETIME, $rank->getColumnType());
     }
 }
 
@@ -42,6 +57,16 @@ class AnnotationConfigurationTestEntity
     public $id;
     #[Column('user_name')]
     public $username;
-    #[Column(columnType: ColumnType::INT)]
-    public $rank;
+    #[Column]
+    public float $float;
+    #[Column]
+    public string $string;
+    #[Column]
+    public bool $isActive;
+    #[Column]
+    public int $rank;
+    #[Column]
+    public ?int $rank2;
+    #[Column]
+    public \DateTime $date;
 }
