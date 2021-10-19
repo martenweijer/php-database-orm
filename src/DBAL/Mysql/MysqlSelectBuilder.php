@@ -12,7 +12,7 @@ class MysqlSelectBuilder implements SelectBuilder
     protected SimpleParameterFactory $parameterFactory;
 
     protected string $table;
-    protected ?int $limit = null;
+    protected ?string $limit = null;
     protected array $whereConstraints = [];
     protected array $orderBy = [];
 
@@ -49,7 +49,7 @@ class MysqlSelectBuilder implements SelectBuilder
 
     public function setLimit(int $limit): static
     {
-        $this->limit = $limit;
+        $this->limit = $this->parameterFactory->generateParameter($limit);
         return $this;
     }
 

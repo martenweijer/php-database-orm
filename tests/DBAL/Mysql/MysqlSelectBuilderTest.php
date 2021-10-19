@@ -39,7 +39,8 @@ class MysqlSelectBuilderTest extends TestCase
     {
         $builder = new MysqlSelectBuilder('users');
         $builder->setLimit(10);
-        $this->assertEquals('select * from `users` limit 10', $builder->generateSql());
+        $this->assertEquals('select * from `users` limit :param_0', $builder->generateSql());
+        $this->assertEquals([':param_0' => 10], $builder->getParameters());
     }
 
     function testOrderBy(): void
