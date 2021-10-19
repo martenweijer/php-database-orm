@@ -33,12 +33,12 @@ class SimpleEntityManager implements EntityManager
 
     public function add(object $entity): void
     {
-        $this->databaseContext->getEntityRegistry()->add($entity);
+        $this->databaseContext->getUnitOfWork()->register($entity);
     }
 
     public function delete(object $entity): void
     {
-        $this->databaseContext->getEntityRegistry()->delete($entity);
+        $this->databaseContext->getUnitOfWork()->delete($entity);
     }
 
     public function save(object $entity = null): void
@@ -54,7 +54,7 @@ class SimpleEntityManager implements EntityManager
     {
         $changeList = new ChangeList(
             $this->databaseContext->getConfiguration(),
-            $this->databaseContext->getEntityRegistry()
+            $this->databaseContext->getUnitOfWork()
         );
         $entityStates = $changeList->determineChanges();
 

@@ -11,7 +11,7 @@ use Electronics\Database\ORM\Hydrators\Hydrator;
 use Electronics\Database\ORM\Persisting\EntityPersister;
 use Electronics\Database\ORM\Persisting\Persister;
 use Electronics\Database\ORM\Typings\SimpleValueConverter;
-use Electronics\Database\ORM\UnitOfWork\EntityRegistry;
+use Electronics\Database\ORM\Typings\ValueConverter;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
 
 class DatabaseContext
@@ -19,25 +19,23 @@ class DatabaseContext
     protected Connection $connection;
     protected Configuration $configuration;
     protected UnitOfWork $unitOfWork;
-    protected EntityRegistry $entityRegistry;
     protected Hydrator $hydrator;
     protected Persister $persister;
 
     public function __construct(Connection $connection,
                                 Configuration $configuration = null,
                                 UnitOfWork $unitOfWork = null,
-                                EntityRegistry $entityRegistry = null,
                                 Hydrator $hydrator = null,
-                                Persister $persister = null)
+                                Persister $persister = null,
+                                ValueConverter $valueConverter = null)
     {
-        $valueConverter = new SimpleValueConverter();
+        $valueConverter = $valueConverter ?: new SimpleValueConverter();
 
         $this->connection = $connection;
         $this->configuration = $configuration ?: new AnnotationConfiguration();
         $this->unitOfWork = $unitOfWork ?: new UnitOfWork();
-        $this->entityRegistry = $entityRegistry ?: new EntityRegistry();
-        $this->hydrator = $hydrator ?: new EntityHydrator($valueConverter, $this->unitOfWork, $this->entityRegistry);
-        $this->persister = $persister ?: new EntityPersister($this->connection, $this->configuration, $valueConverter, $this->unitOfWork, $this->entityRegistry);
+        $this->hydrator = $hydrator ?: new EntityHydrator($valueConverter, $this->unitOfWork);
+        $this->persister = $persister ?: new EntityPersister($this->connection, $this->configuration, $valueConverter, $this->unitOfWork);
     }
 
     public function getConnection(): Connection
@@ -58,11 +56,6 @@ class DatabaseContext
     public function getUnitOfWork(): UnitOfWork
     {
         return $this->unitOfWork;
-    }
-
-    public function getEntityRegistry(): EntityRegistry
-    {
-        return $this->entityRegistry;
     }
 
     public function getHydrator(): Hydrator

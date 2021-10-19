@@ -6,9 +6,7 @@ use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
 use Electronics\Database\ORM\Configurations\AnnotationConfiguration;
-use Electronics\Database\ORM\Typings\ColumnType;
 use Electronics\Database\ORM\Typings\SimpleValueConverter;
-use Electronics\Database\ORM\UnitOfWork\EntityRegistry;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +14,7 @@ class EntityHydratorTest extends TestCase
 {
     public function testHydrate(): void
     {
-        $hydrator = new EntityHydrator(new SimpleValueConverter(), new UnitOfWork(), new EntityRegistry());
+        $hydrator = new EntityHydrator(new SimpleValueConverter(), new UnitOfWork());
         $conf = new AnnotationConfiguration();
         $entityMap = $conf->retrieveEntityMap(EntityHydratorTestEntity::class);
 

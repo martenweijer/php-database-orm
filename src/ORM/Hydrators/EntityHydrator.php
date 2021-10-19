@@ -5,20 +5,17 @@ namespace Electronics\Database\ORM\Hydrators;
 use Electronics\Database\ORM\Mappings\EntityMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
 use Electronics\Database\ORM\Typings\ValueConverter;
-use Electronics\Database\ORM\UnitOfWork\EntityRegistry;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
 
 class EntityHydrator implements Hydrator
 {
     protected ValueConverter $valueConverter;
     protected UnitOfWork $unitOfWork;
-    protected EntityRegistry $entityRegistry;
 
-    public function __construct(ValueConverter $valueConverter, UnitOfWork $unitOfWork, EntityRegistry $entityRegistry)
+    public function __construct(ValueConverter $valueConverter, UnitOfWork $unitOfWork)
     {
         $this->valueConverter = $valueConverter;
         $this->unitOfWork = $unitOfWork;
-        $this->entityRegistry = $entityRegistry;
     }
 
     public function hydrate(array $row, EntityMap $entityMap): object
@@ -49,15 +46,14 @@ class EntityHydrator implements Hydrator
     {
         $identifier = $row[$entityMap->getIdentity()->getColumn()];
 
-        if ($this->unitOfWork->has($entityMap->getClass(), $identifier)) {
-            return $this->unitOfWork->get($entityMap->getClass(), $identifier);
+        if ($this->unitOfWork->isEntityAddedToIdentityMap($entityMap->getClass(), $identifier)) {
+            return $this->unitOfWork->getEntityFromIdentityMap($entityMap->getClass(), $identifier);
         }
 
         $entity = $entityMap->newInstance();
         $entityMap->getIdentity()->setValue($entity, $identifier);
 
-        $this->unitOfWork->register($entityMap->getClass(), $entity, $identifier);
-        $this->entityRegistry->add($entity);
+        $this->unitOfWork->addEntityToIdentityMap($entityMap->getClass(), $entity, $identifier);
 
         return $entity;
     }

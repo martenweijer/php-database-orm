@@ -9,19 +9,19 @@ use Electronics\Database\ORM\Mappings\PropertyMap;
 class ChangeList
 {
     protected Configuration $configuration;
-    protected EntityRegistry $entityRegistry;
+    protected UnitOfWork $unitOfWork;
 
-    public function __construct(Configuration $configuration, EntityRegistry $entityRegistry)
+    public function __construct(Configuration $configuration, UnitOfWork $unitOfWork)
     {
         $this->configuration = $configuration;
-        $this->entityRegistry = $entityRegistry;
+        $this->unitOfWork = $unitOfWork;
     }
 
     public function determineChanges(): array
     {
         $entityStates = [];
 
-        foreach ($this->entityRegistry->getAddedEntities() as $entity) {
+        foreach ($this->unitOfWork->getEntities() as $entity) {
             $state = $this->determineState($entity);
             $entityStates[] = new EntityState($entity, $state);
         }
@@ -31,7 +31,7 @@ class ChangeList
 
     protected function determineState(object $entity): State
     {
-        if ($this->entityRegistry->isRemoved($entity)) {
+        if ($this->unitOfWork->isRemoved($entity)) {
             return State::DELETED;
         }
 
@@ -51,7 +51,7 @@ class ChangeList
 
     protected function hasChanges(EntityMap $entityMap, object $entity): bool
     {
-        $snapshot = $this->entityRegistry->getSnapshot($entity);
+        $snapshot = $this->unitOfWork->getSnapshot($entity);
 
         foreach ($entityMap->getProperties() as $propertyMap) {
             /** @var PropertyMap $propertyMap */
