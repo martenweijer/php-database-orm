@@ -45,7 +45,7 @@ class MysqlUpdateBuilder implements UpdateBuilder
         return $this;
     }
 
-    public function set(string $column, float|int|string $value): static
+    public function set(string $column, string|int|float|null $value): static
     {
         $this->values[] = "`$column` = ". $this->parameterFactory->generateParameter($value);
         return $this;

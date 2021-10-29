@@ -2,7 +2,9 @@
 
 namespace Electronics\Database\ORM\Hydrators;
 
+use Electronics\Database\ORM\EntityManager;
 use Electronics\Database\ORM\Mappings\EntityMap;
+use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
 use Electronics\Database\ORM\Typings\ValueConverter;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
@@ -18,16 +20,16 @@ class EntityHydrator implements Hydrator
         $this->unitOfWork = $unitOfWork;
     }
 
-    public function hydrate(array $row, EntityMap $entityMap): object
+    public function hydrate(array $row, EntityMap $entityMap, EntityManager $entityManager): object
     {
         $entity = $this->retrieveEntity($row, $entityMap);
 
-        $this->doHydrate($row, $entityMap, $entity);
+        $this->doHydrate($row, $entityMap, $entity, $entityManager);
 
         return $entity;
     }
 
-    protected function doHydrate(array $row, EntityMap $entityMap, $entity): void
+    protected function doHydrate(array $row, EntityMap $entityMap, $entity, EntityManager $entityManager): void
     {
         foreach ($entityMap->getProperties() as $propertyMap) {
             /** @var PropertyMap $propertyMap */
@@ -39,6 +41,20 @@ class EntityHydrator implements Hydrator
             }
 
             $propertyMap->setValue($entity, $this->valueConverter->convertFromSqlValue($row[$column], $propertyMap));
+        }
+
+        foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
+            /** @var OneToOneMap $oneMapping */
+            if (!array_key_exists($column = $oneMapping->getColumn(), $row)) {
+                continue;
+            }
+
+            $identity = $row[$column];
+
+            if ($identity !== null) {
+                $targetEntity = $entityManager->find($oneMapping->getTargetClass(), $row[$column]);
+                $oneMapping->setValue($entity, $targetEntity);
+            }
         }
     }
 

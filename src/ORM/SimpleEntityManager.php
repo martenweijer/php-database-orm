@@ -27,7 +27,8 @@ class SimpleEntityManager implements EntityManager
     {
         return new EntityRepository(
             $entityClass,
-            $this->databaseContext
+            $this->databaseContext,
+            $this
         );
     }
 

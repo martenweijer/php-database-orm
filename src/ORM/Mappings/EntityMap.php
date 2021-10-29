@@ -10,6 +10,7 @@ class EntityMap
     protected \ReflectionClass $reflectionClass;
 
     protected ?PropertyMap $identity;
+    protected array $oneToOneMappings = [];
     protected array $properties = [];
 
     public function __construct(string $class, string $table, ?string $connection, \ReflectionClass $reflectionClass)
@@ -67,5 +68,15 @@ class EntityMap
         }
 
         return $this->properties[$name];
+    }
+
+    public function addOneToOneMap(OneToOneMap $map): void
+    {
+        $this->oneToOneMappings[] = $map;
+    }
+
+    public function getOneToOneMappings(): array
+    {
+        return $this->oneToOneMappings;
     }
 }

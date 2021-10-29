@@ -37,7 +37,7 @@ class SimpleEntityManagerTest extends TestCase
         $em = new SimpleEntityManager($dbContext);
         $repository = $em->load(SimpleEntityManagerTestEntity::class);
 
-        $repositoryCheck = new EntityRepository(SimpleEntityManagerTestEntity::class, $dbContext);
+        $repositoryCheck = new EntityRepository(SimpleEntityManagerTestEntity::class, $dbContext, $em);
         $this->assertEquals($repositoryCheck, $repository);
     }
 

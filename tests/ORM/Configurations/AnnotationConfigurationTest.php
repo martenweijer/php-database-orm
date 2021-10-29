@@ -5,6 +5,8 @@ namespace Electronics\Database\ORM\Configurations;
 use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
+use Electronics\Database\ORM\Annotations\OneToOne;
+use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Typings\ColumnType;
 use PHPUnit\Framework\TestCase;
 
@@ -48,6 +50,17 @@ class AnnotationConfigurationTest extends TestCase
         $rank = $entityMap->getProperty('date');
         $this->assertEquals(ColumnType::DATETIME, $rank->getColumnType());
     }
+
+    function testOneToOneMap(): void
+    {
+        $conf = new AnnotationConfiguration();
+        $entityMap = $conf->retrieveEntityMap(AnnotationConfigurationTestToOneEntity::class);
+
+        $this->assertEquals(1, count($entityMap->getOneToOneMappings()));
+
+        $map = new OneToOneMap('user', AnnotationConfigurationTestEntity::class, 'user_id', new \ReflectionProperty(AnnotationConfigurationTestToOneEntity::class, 'user'));
+        $this->assertEquals($map, $entityMap->getOneToOneMappings()[0]);
+    }
 }
 
 #[Entity('users')]
@@ -69,4 +82,14 @@ class AnnotationConfigurationTestEntity
     public ?int $rank2;
     #[Column]
     public \DateTime $date;
+}
+
+#[Entity('posts')]
+class AnnotationConfigurationTestToOneEntity
+{
+    #[Id]
+    public $id;
+
+    #[OneToOne]
+    public AnnotationConfigurationTestEntity $user;
 }
