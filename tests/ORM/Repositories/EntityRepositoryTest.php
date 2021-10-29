@@ -10,6 +10,7 @@ use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
 use Electronics\Database\ORM\DatabaseContext;
+use Electronics\Database\ORM\EntityManager;
 use Electronics\Database\ORM\Repositories\EntityRepository;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +21,7 @@ class EntityRepositoryTest extends TestCase
     {
         $conn = new EntityRepositoryTestConnection();
         $dbContext = new DatabaseContext($conn);
-        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext);
+        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext, $this->createMock(EntityManager::class));
         $entity = $repository->find(1);
 
         $entityCheck = new EntityRepositoryTestEntity();
@@ -34,7 +35,7 @@ class EntityRepositoryTest extends TestCase
     {
         $conn = new EntityRepositoryTestConnection();
         $dbContext = new DatabaseContext($conn);
-        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext);
+        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext, $this->createMock(EntityManager::class));
         $entities = $repository->findAll();
 
         $entityCheck = new EntityRepositoryTestEntity();
@@ -48,7 +49,7 @@ class EntityRepositoryTest extends TestCase
     {
         $conn = new EntityRepositoryTestConnection();
         $dbContext = new DatabaseContext($conn);
-        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext);
+        $repository = new EntityRepository(EntityRepositoryTestEntity::class, $dbContext, $this->createMock(EntityManager::class));
         $repository->findBy(['is_active' => false], 10, ['username' => 'desc']);
 
         $this->assertEquals('select * from `users` where `is_active` = :param_1 order by `username` desc limit :param_0', $conn->builder->generateSql());

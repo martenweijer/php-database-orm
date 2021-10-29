@@ -5,7 +5,9 @@ namespace Electronics\Database\ORM\Configurations;
 use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
+use Electronics\Database\ORM\Annotations\OneToOne;
 use Electronics\Database\ORM\Mappings\EntityMap;
+use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
 use Electronics\Database\ORM\Typings\ColumnType;
 
@@ -68,6 +70,14 @@ class AnnotationConfiguration implements Configuration
                 $entityMap->setIdentity(new PropertyMap($reflectionProperty->getName(),
 					$annotation->value ?? $reflectionProperty->getName(),
                     $this->convertPropertyToColumnType($reflectionProperty), $reflectionProperty));
+            }
+
+            elseif ($attribute->getName() === OneToOne::class) {
+                $reflectionProperty->setAccessible(true);
+
+                $annotation = $attribute->newInstance();
+                $entityMap->addOneToOneMap(new OneToOneMap($reflectionProperty->getName(),
+                    $reflectionProperty->getType()->getName(), $annotation->column ?? $reflectionProperty->getName() .'_id', $reflectionProperty));
             }
         }
     }

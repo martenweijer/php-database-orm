@@ -6,6 +6,7 @@ use Electronics\Database\DBAL\Constraints\Equals;
 use Electronics\Database\DBAL\SelectBuilder;
 use Electronics\Database\DBAL\Types\OrderType;
 use Electronics\Database\ORM\DatabaseContext;
+use Electronics\Database\ORM\EntityManager;
 use Electronics\Database\ORM\Exceptions\EntityNotFoundException;
 use Electronics\Database\ORM\Mappings\EntityMap;
 
@@ -13,15 +14,21 @@ class EntityRepository implements Repository
 {
     protected EntityMap $entityMap;
     protected DatabaseContext $databaseContext;
+    protected EntityManager $entityManager;
 
-    public function __construct(string $entityClass, DatabaseContext $databaseContext)
+    public function __construct(string $entityClass, DatabaseContext $databaseContext, EntityManager $entityManager)
     {
         $this->entityMap = $databaseContext->getConfiguration()->retrieveEntityMap($entityClass);
         $this->databaseContext = $databaseContext;
+        $this->entityManager = $entityManager;
     }
 
     public function find(string|int|float $identifier): object
     {
+        if ($this->databaseContext->getUnitOfWork()->isEntityAddedToIdentityMap($this->entityMap->getClass(), $identifier)) {
+            return $this->databaseContext->getUnitOfWork()->getEntityFromIdentityMap($this->entityMap->getClass(), $identifier);
+        }
+
         $entities = $this->findBy([
             $this->entityMap->getIdentity()->getColumn() => $identifier
         ], 1);
@@ -70,7 +77,7 @@ class EntityRepository implements Repository
 
         $entities = [];
         foreach ($statement->fetchAll() as $row) {
-            $entities[] = $this->databaseContext->getHydrator()->hydrate($row, $this->entityMap);
+            $entities[] = $this->databaseContext->getHydrator()->hydrate($row, $this->entityMap, $this->entityManager);
         }
 
         return $entities;

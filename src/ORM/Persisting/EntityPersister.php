@@ -5,6 +5,7 @@ namespace Electronics\Database\ORM\Persisting;
 use Electronics\Database\Connections\Connection;
 use Electronics\Database\DBAL\Constraints\Equals;
 use Electronics\Database\ORM\Configurations\Configuration;
+use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
 use Electronics\Database\ORM\Typings\ValueConverter;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
@@ -37,6 +38,19 @@ class EntityPersister implements Persister
             );
         }
 
+        foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
+            /** @var OneToOneMap $oneMapping */
+            $relationEntity = $oneMapping->getValue($entity);
+
+            if ($relationEntity === null) {
+                continue;
+            }
+
+            $relationEntityId = $this->configuration->retrieveEntityMap($oneMapping->getTargetClass())
+                ->getIdentity()->getValue($relationEntity);
+            $builder->add($oneMapping->getColumn(), $relationEntityId);
+        }
+
         $this->connection->execute($builder);
 
         $identifier = $this->connection->retrieveLastInsertId();
@@ -60,6 +74,15 @@ class EntityPersister implements Persister
                 $propertyMap->getColumn(),
                 $this->valueConverter->convertToSqlValue($propertyMap->getValue($entity), $propertyMap)
             );
+        }
+
+        foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
+            /** @var OneToOneMap $oneMapping */
+            $relationEntity = $oneMapping->getValue($entity);
+
+            $relationEntityId = $relationEntity === null ? null : $this->configuration->retrieveEntityMap($oneMapping->getTargetClass())
+                ->getIdentity()->getValue($relationEntity);
+            $builder->set($oneMapping->getColumn(), $relationEntityId);
         }
 
         $this->connection->execute($builder);
