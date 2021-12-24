@@ -10,6 +10,8 @@ use Electronics\Database\ORM\Hydrators\EntityHydrator;
 use Electronics\Database\ORM\Hydrators\Hydrator;
 use Electronics\Database\ORM\Persisting\EntityPersister;
 use Electronics\Database\ORM\Persisting\Persister;
+use Electronics\Database\ORM\Proxy\EntityProxyFactory;
+use Electronics\Database\ORM\Proxy\ProxyFactory;
 use Electronics\Database\ORM\Typings\SimpleValueConverter;
 use Electronics\Database\ORM\Typings\ValueConverter;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
@@ -27,14 +29,16 @@ class DatabaseContext
                                 UnitOfWork $unitOfWork = null,
                                 Hydrator $hydrator = null,
                                 Persister $persister = null,
-                                ValueConverter $valueConverter = null)
+                                ValueConverter $valueConverter = null,
+                                ProxyFactory $proxyFactory = null)
     {
         $valueConverter = $valueConverter ?: new SimpleValueConverter();
+        $proxyFactory = $proxyFactory ?: new EntityProxyFactory();
 
         $this->connection = $connection;
         $this->configuration = $configuration ?: new AnnotationConfiguration();
         $this->unitOfWork = $unitOfWork ?: new UnitOfWork();
-        $this->hydrator = $hydrator ?: new EntityHydrator($valueConverter, $this->unitOfWork);
+        $this->hydrator = $hydrator ?: new EntityHydrator($this->configuration, $valueConverter, $this->unitOfWork, $proxyFactory);
         $this->persister = $persister ?: new EntityPersister($this->connection, $this->configuration, $valueConverter, $this->unitOfWork);
     }
 
