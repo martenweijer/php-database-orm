@@ -2,22 +2,30 @@
 
 namespace Electronics\Database\ORM\Hydrators;
 
+use Electronics\Database\ORM\Configurations\Configuration;
 use Electronics\Database\ORM\EntityManager;
+use Electronics\Database\ORM\Exceptions\EntityNotFoundException;
 use Electronics\Database\ORM\Mappings\EntityMap;
 use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
+use Electronics\Database\ORM\Proxy\ProxyFactory;
+use Electronics\Database\ORM\Typings\Fetch;
 use Electronics\Database\ORM\Typings\ValueConverter;
 use Electronics\Database\ORM\UnitOfWork\UnitOfWork;
 
 class EntityHydrator implements Hydrator
 {
+    protected Configuration $configuration;
     protected ValueConverter $valueConverter;
     protected UnitOfWork $unitOfWork;
+    protected ProxyFactory $proxyFactory;
 
-    public function __construct(ValueConverter $valueConverter, UnitOfWork $unitOfWork)
+    public function __construct(Configuration $configuration, ValueConverter $valueConverter, UnitOfWork $unitOfWork, ProxyFactory $proxyFactory)
     {
+        $this->configuration = $configuration;
         $this->valueConverter = $valueConverter;
         $this->unitOfWork = $unitOfWork;
+        $this->proxyFactory = $proxyFactory;
     }
 
     public function hydrate(array $row, EntityMap $entityMap, EntityManager $entityManager): object
@@ -49,11 +57,37 @@ class EntityHydrator implements Hydrator
                 continue;
             }
 
-            $identity = $row[$column];
+            $identifier = $row[$column];
 
-            if ($identity !== null) {
-                $targetEntity = $entityManager->find($oneMapping->getTargetClass(), $row[$column]);
+            if ($identifier !== null) {
+                $targetEntityMap = $this->configuration->retrieveEntityMap($oneMapping->getTargetClass());
+
+                $callable = function() use($targetEntityMap, $entityManager, $oneMapping, $identifier) {
+                    $entities = $entityManager->load($oneMapping->getTargetClass())
+                        ->findBy([
+                            $targetEntityMap->getIdentity()->getColumn() => $identifier
+                        ]);
+
+                    if (count($entities) !== 1) {
+                        throw new EntityNotFoundException();
+                    }
+
+                    return $entities[0];
+                };
+
+                if ($oneMapping->getFetchType() === Fetch::LAZY) {
+                    $targetEntity = $this->proxyFactory->createProxy(
+                        $targetEntityMap,
+                        $identifier,
+                        $callable
+                    );
+                } else {
+                    $targetEntity = call_user_func($callable);
+                }
+
                 $oneMapping->setValue($entity, $targetEntity);
+
+                $this->unitOfWork->addEntityToIdentityMap($oneMapping->getTargetClass(), $targetEntity, $identifier);
             }
         }
     }

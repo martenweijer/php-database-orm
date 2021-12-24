@@ -77,7 +77,8 @@ class AnnotationConfiguration implements Configuration
 
                 $annotation = $attribute->newInstance();
                 $entityMap->addOneToOneMap(new OneToOneMap($reflectionProperty->getName(),
-                    $reflectionProperty->getType()->getName(), $annotation->column ?? $reflectionProperty->getName() .'_id', $reflectionProperty));
+                    $reflectionProperty->getType()->getName(), $annotation->column ?? $reflectionProperty->getName() .'_id',
+                    $annotation->fetchType, $reflectionProperty));
             }
         }
     }
