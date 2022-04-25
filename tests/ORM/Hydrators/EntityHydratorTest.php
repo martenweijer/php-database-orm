@@ -9,6 +9,10 @@ use Electronics\Database\DBAL\Mysql\MysqlBuilderFactory;
 use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
+use Electronics\Database\ORM\Annotations\OneToMany;
+use Electronics\Database\ORM\Annotations\OneToOne;
+use Electronics\Database\ORM\Collections\EntityCollection;
+use Electronics\Database\ORM\Collections\ProxyCollection;
 use Electronics\Database\ORM\Configurations\AnnotationConfiguration;
 use Electronics\Database\ORM\DatabaseContext;
 use Electronics\Database\ORM\EntityManager;
@@ -72,6 +76,7 @@ class EntityHydratorTest extends TestCase
         $repository = $this->createMock(Repository::class);
         $em->method('load')->willReturn($repository);
         $repository->method('findBy')->willReturn([$toOneEntity]);
+        $em->method('find')->willReturn($toOneEntity);
 
         $entity = $hydrator->hydrate($row, $entityMap, $em);
 
@@ -102,6 +107,31 @@ class EntityHydratorTest extends TestCase
         $this->assertEquals(1, $entity->id);
         $this->assertEquals(5, $entity->user->id);
         $this->assertEquals('foo', $entity->user->getUsername());
+    }
+
+    function testHydrateOneToMany(): void
+    {
+        $uow = new UnitOfWork();
+        $conf = new AnnotationConfiguration();
+        $hydrator = new EntityHydrator($conf, new SimpleValueConverter(), $uow, new EntityProxyFactory());
+        $entityMap = $conf->retrieveEntityMap(EntityHydratorTestOne::class);
+
+        $row = [
+            'id' => 1
+        ];
+
+        $em = new SimpleEntityManager(new DatabaseContext(
+            new EntityHydratorTestConnection(), null, $uow
+        ));
+
+        $entity = $hydrator->hydrate($row, $entityMap, $em);
+
+        $this->assertEquals(1, $entity->id);
+        $this->assertInstanceOf(ProxyCollection::class, $entity->many);
+        $this->assertEquals(1, $entity->many->count());
+
+        $this->assertEquals(5, $entity->many[0]->id);
+        $this->assertEquals('foo', $entity->many[0]->username);
     }
 }
 
@@ -182,7 +212,7 @@ class EntityHydratorTestToOneEntity
     #[Column]
     public string $username;
 
-    #[\Electronics\Database\ORM\Annotations\OneToOne(fetchType: Fetch::LAZY)]
+    #[OneToOne(fetchType: Fetch::LAZY)]
     public EntityHydratorTestEntity $user;
 
     public function getId(): ?int
@@ -239,4 +269,26 @@ class EntityHydratorTestStatement extends \PDOStatement
             ]
         ];
     }
+}
+
+#[Entity('EntityHydratorTestOne')]
+class EntityHydratorTestOne
+{
+    #[Id]
+    public ?int $id;
+
+    #[OneToMany(EntityHydratorTestMany::class, column: 'one_id')]
+    public EntityCollection $many;
+}
+
+#[Entity('EntityHydratorTestMany')]
+class EntityHydratorTestMany
+{
+    #[Id]
+    public ?int $id;
+
+    #[Column]
+    public string $username;
+
+    public EntityHydratorTestOne $one;
 }

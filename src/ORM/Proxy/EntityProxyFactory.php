@@ -59,10 +59,7 @@ class EntityProxyFactory implements ProxyFactory
 
     public function %s()%s
     {
-        if (!$this->__isInitialized) {
-            call_user_func($this->__initializer);
-        }
-        
+        $this->initialize();
         return parent::%s();
     }', $method, $returnType, $method);
         }
@@ -74,6 +71,15 @@ class %s extends %s
     
     private $__initializer;
     private bool $__isInitialized = false;%s
+    
+    private function initialize()
+    {
+        if (!$this->__isInitialized) {
+            $this->__isInitialized = true;
+
+            call_user_func($this->__initializer);
+        }
+    }
 }', $className, $entityMap->getClass(), $methods);
         eval('?>'. $template);
     }
