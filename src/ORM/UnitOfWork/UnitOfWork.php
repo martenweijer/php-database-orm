@@ -12,6 +12,10 @@ class UnitOfWork
 
     public function addEntityToIdentityMap(string $class, object $entity, string|int|float $identifier): void
     {
+        if ($this->isEntityAddedToIdentityMap($class, $identifier)) {
+            return;
+        }
+
         if (!isset($this->identityMap[$class])) {
             $this->identityMap[$class] = [];
         }

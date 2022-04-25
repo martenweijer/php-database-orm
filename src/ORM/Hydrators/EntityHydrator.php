@@ -2,10 +2,13 @@
 
 namespace Electronics\Database\ORM\Hydrators;
 
+use Electronics\Database\ORM\Collections\EntityCollection;
+use Electronics\Database\ORM\Collections\ProxyCollection;
 use Electronics\Database\ORM\Configurations\Configuration;
 use Electronics\Database\ORM\EntityManager;
 use Electronics\Database\ORM\Exceptions\EntityNotFoundException;
 use Electronics\Database\ORM\Mappings\EntityMap;
+use Electronics\Database\ORM\Mappings\OneToManyMap;
 use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Mappings\PropertyMap;
 use Electronics\Database\ORM\Proxy\ProxyFactory;
@@ -60,6 +63,11 @@ class EntityHydrator implements Hydrator
             $identifier = $row[$column];
 
             if ($identifier !== null) {
+                if ($this->unitOfWork->isEntityAddedToIdentityMap($oneMapping->getTargetClass(), $identifier)) {
+                    $oneMapping->setValue($entity, $this->unitOfWork->getEntityFromIdentityMap($oneMapping->getTargetClass(), $identifier));
+                    continue;
+                }
+
                 $targetEntityMap = $this->configuration->retrieveEntityMap($oneMapping->getTargetClass());
 
                 $callable = function() use($targetEntityMap, $entityManager, $oneMapping, $identifier) {
@@ -82,13 +90,31 @@ class EntityHydrator implements Hydrator
                         $callable
                     );
                 } else {
-                    $targetEntity = call_user_func($callable);
+                    $targetEntity = $entityManager->find($oneMapping->getTargetClass(), $row[$column]);
                 }
 
                 $oneMapping->setValue($entity, $targetEntity);
 
                 $this->unitOfWork->addEntityToIdentityMap($oneMapping->getTargetClass(), $targetEntity, $identifier);
             }
+        }
+
+        foreach ($entityMap->getOneToManyMappings() as $manyMapping) {
+            /** @var OneToManyMap $manyMapping */
+
+            $targetEntityMap = $this->configuration->retrieveEntityMap($manyMapping->getTargetClass());
+
+            $callable = function(EntityCollection $collection) use($targetEntityMap, $entityManager, $manyMapping, $entityMap, $entity) {
+                $entities = $entityManager->load($targetEntityMap->getClass())
+                    ->findBy([
+                        $manyMapping->getColumn() => $entityMap->getIdentity()->getValue($entity)
+                    ]);
+
+                $collection->setEntities($entities);
+            };
+
+            $collection = new ProxyCollection($callable);
+            $manyMapping->setValue($entity, $collection);
         }
     }
 

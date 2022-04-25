@@ -5,7 +5,10 @@ namespace Electronics\Database\ORM\Configurations;
 use Electronics\Database\ORM\Annotations\Column;
 use Electronics\Database\ORM\Annotations\Entity;
 use Electronics\Database\ORM\Annotations\Id;
+use Electronics\Database\ORM\Annotations\OneToMany;
 use Electronics\Database\ORM\Annotations\OneToOne;
+use Electronics\Database\ORM\Collections\EntityCollection;
+use Electronics\Database\ORM\Mappings\OneToManyMap;
 use Electronics\Database\ORM\Mappings\OneToOneMap;
 use Electronics\Database\ORM\Typings\ColumnType;
 use Electronics\Database\ORM\Typings\Fetch;
@@ -62,6 +65,17 @@ class AnnotationConfigurationTest extends TestCase
         $map = new OneToOneMap('user', AnnotationConfigurationTestEntity::class, 'user_id', Fetch::EAGER, new \ReflectionProperty(AnnotationConfigurationTestToOneEntity::class, 'user'));
         $this->assertEquals($map, $entityMap->getOneToOneMappings()[0]);
     }
+
+    function testOneToManyMap(): void
+    {
+        $conf = new AnnotationConfiguration();
+        $entityMap = $conf->retrieveEntityMap(AnnotationConfigurationTestToOneEntity::class);
+
+        $this->assertEquals(1, count($entityMap->getOneToManyMappings()));
+
+        $map = new OneToManyMap('users', AnnotationConfigurationTestEntity::class, 'user_id', Fetch::LAZY, new \ReflectionProperty(AnnotationConfigurationTestToOneEntity::class, 'users'));
+        $this->assertEquals($map, $entityMap->getOneToManyMappings()[0]);
+    }
 }
 
 #[Entity('users')]
@@ -93,4 +107,7 @@ class AnnotationConfigurationTestToOneEntity
 
     #[OneToOne]
     public AnnotationConfigurationTestEntity $user;
+
+    #[OneToMany(AnnotationConfigurationTestEntity::class, column: 'user_id', fetchType: Fetch::LAZY)]
+    public EntityCollection $users;
 }
