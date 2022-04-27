@@ -14,6 +14,7 @@ class MysqlSelectBuilder implements SelectBuilder
     protected string $table;
     protected ?string $limit = null;
     protected array $whereConstraints = [];
+    /** @var scalar[] */
     protected array $orderBy = [];
 
     public function __construct(string $table)

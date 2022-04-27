@@ -52,6 +52,8 @@ class OneToOneMap
             return null;
         }
 
-        return $this->reflectionProperty->getValue($entity);
+        /** @var object|null $value */
+        $value = $this->reflectionProperty->getValue($entity);
+        return $value;
     }
 }

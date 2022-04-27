@@ -12,6 +12,7 @@ class MysqlUpdateBuilder implements UpdateBuilder
 
     protected string $table;
     protected array $whereConstraints = [];
+    /** @var scalar[] */
     protected array $values = [];
 
     public function __construct(string $table)

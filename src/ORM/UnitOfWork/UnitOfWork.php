@@ -4,10 +4,14 @@ namespace Electronics\Database\ORM\UnitOfWork;
 
 class UnitOfWork
 {
+    /** @var array<string, array<string|int|float, object>> */
     protected array $identityMap = [];
 
+    /** @var object[] */
     protected array $entities = [];
+    /** @var object[] */
     protected array $removedEntities = [];
+    /** @var object[] */
     protected array $snapshots = [];
 
     public function addEntityToIdentityMap(string $class, object $entity, string|int|float $identifier): void
@@ -52,6 +56,9 @@ class UnitOfWork
         $this->removedEntities[$identifier] = $entity;
     }
 
+    /**
+     * @return object[]
+     */
     public function getEntities(): array
     {
         return $this->entities;

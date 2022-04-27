@@ -10,6 +10,7 @@ class MysqlInsertBuilder implements InsertBuilder
     protected SimpleParameterFactory $parameterFactory;
 
     protected string $table;
+    /** @var array<string, scalar> */
     protected array $values = [];
 
     public function __construct(string $table)

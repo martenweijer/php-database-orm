@@ -10,7 +10,7 @@ class ProxyCollection extends EntityCollection
     public function __construct(callable $initializer)
     {
         parent::__construct();
-        $this->initializer = $initializer;
+        $this->initializer = \Closure::fromCallable($initializer);
     }
 
     public function getIterator(): \ArrayIterator
@@ -31,6 +31,10 @@ class ProxyCollection extends EntityCollection
         return parent::offsetExists($offset);
     }
 
+    /**
+     * @param mixed $offset
+     * @return mixed
+     */
     public function offsetGet($offset): mixed
     {
         $this->initialize();
@@ -49,12 +53,12 @@ class ProxyCollection extends EntityCollection
         parent::offsetUnset($offset);
     }
 
-    private function initialize()
+    private function initialize(): void
     {
         if (!$this->isInitialized) {
             $this->isInitialized = true;
 
-            call_user_func($this->initializer, $this);
+            $this->initializer->call($this, $this);
         }
     }
 }

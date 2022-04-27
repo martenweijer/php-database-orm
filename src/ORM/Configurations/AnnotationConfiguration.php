@@ -15,6 +15,7 @@ use Electronics\Database\ORM\Typings\ColumnType;
 
 class AnnotationConfiguration implements Configuration
 {
+    /** @var EntityMap[] */
     protected array $entityMaps = [];
 
     public function retrieveEntityMap(string|object $entity): EntityMap
@@ -30,6 +31,7 @@ class AnnotationConfiguration implements Configuration
 
     protected function generateEntityMap(string $className): EntityMap
     {
+        /** @var class-string $className */
         $reflection = new \ReflectionClass($className);
         $attributes = $reflection->getAttributes(Entity::class);
 
@@ -44,10 +46,6 @@ class AnnotationConfiguration implements Configuration
             $this->addProperty($entityMap, $property);
         }
 
-        if ($entityMap->getIdentity() === null) {
-            throw new \RuntimeException(sprintf('No @Id found on entity "%s".', $entityMap->getClass()));
-        }
-
         return $entityMap;
     }
 
@@ -59,6 +57,7 @@ class AnnotationConfiguration implements Configuration
             if ($attribute->getName() === Column::class) {
                 $reflectionProperty->setAccessible(true);
 
+                /** @var Column $annotation */
                 $annotation = $attribute->newInstance();
                 $entityMap->addProperty(new PropertyMap($reflectionProperty->getName(),
                     $annotation->value ?? $reflectionProperty->getName(),
@@ -68,6 +67,7 @@ class AnnotationConfiguration implements Configuration
             elseif ($attribute->getName() === Id::class) {
                 $reflectionProperty->setAccessible(true);
 
+                /** @var Id $annotation */
                 $annotation = $attribute->newInstance();
                 $entityMap->setIdentity(new PropertyMap($reflectionProperty->getName(),
 					$annotation->value ?? $reflectionProperty->getName(),
@@ -77,15 +77,19 @@ class AnnotationConfiguration implements Configuration
             elseif ($attribute->getName() === OneToOne::class) {
                 $reflectionProperty->setAccessible(true);
 
+                /** @var OneToOne $annotation */
                 $annotation = $attribute->newInstance();
+                /** @var \ReflectionNamedType $type */
+                $type = $reflectionProperty->getType();
                 $entityMap->addOneToOneMap(new OneToOneMap($reflectionProperty->getName(),
-                    $reflectionProperty->getType()->getName(), $annotation->column ?? $reflectionProperty->getName() .'_id',
+                    $type->getName(), $annotation->column ?? $reflectionProperty->getName() .'_id',
                     $annotation->fetchType, $reflectionProperty));
             }
 
             elseif ($attribute->getName() === OneToMany::class) {
                 $reflectionProperty->setAccessible(true);
 
+                /** @var OneToMany $annotation */
                 $annotation = $attribute->newInstance();
                 $entityMap->addOneToManyMap(new OneToManyMap($reflectionProperty->getName(),
                     $annotation->value, $annotation->column ?? $entityMap->getTable() .'_id',
@@ -100,18 +104,15 @@ class AnnotationConfiguration implements Configuration
             return $entity;
         }
 
-        if (is_object($entity)) {
-            return get_class($entity);
-
-        }
-
-        throw new \InvalidArgumentException(sprintf('Could not convert variable of type "%s" to string', gettype($entity)));
+        return get_class($entity);
     }
 
     protected function convertPropertyToColumnType(\ReflectionProperty $property): ColumnType
     {
         if ($property->hasType()) {
-            return match ($property->getType()->getName()) {
+            /** @var \ReflectionNamedType $type */
+            $type = $property->getType();
+            return match ($type->getName()) {
                 'int' => ColumnType::INT,
                 'float' => ColumnType::FLOAT,
                 'bool' => ColumnType::BOOL,

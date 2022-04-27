@@ -45,6 +45,8 @@ class PropertyMap
             return null;
         }
 
-        return $this->reflectionProperty->getValue($entity);
+        /** @var string|float|int|\DateTime|null $value */
+        $value = $this->reflectionProperty->getValue($entity);
+        return $value;
     }
 }

@@ -31,21 +31,34 @@ class EntityCollection implements \IteratorAggregate, \Countable, \ArrayAccess
         return count($this->entities);
     }
 
+    /**
+     * @psalm-suppress MixedArrayOffset
+     */
     public function offsetExists($offset): bool
     {
         return isset($this->entities[$offset]);
     }
 
+    /**
+     * @psalm-suppress MixedArrayOffset
+     * @psalm-suppress MixedReturnStatement
+     */
     public function offsetGet($offset): mixed
     {
         return $this->entities[$offset];
     }
 
+    /**
+     * @psalm-suppress MixedArrayOffset
+     */
     public function offsetSet($offset, $value): void
     {
         $this->entities[$offset] = $value;
     }
 
+    /**
+     * @psalm-suppress MixedArrayOffset
+     */
     public function offsetUnset($offset): void
     {
         unset($this->entities[$offset]);

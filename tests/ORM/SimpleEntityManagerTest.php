@@ -80,7 +80,7 @@ class SimpleEntityManagerTestConnection implements Connection
 
 class SimpleEntityManagerTestStatement extends \PDOStatement
 {
-    public function fetchAll($mode = \PDO::FETCH_BOTH, ...$args)
+    public function fetchAll($mode = \PDO::FETCH_DEFAULT, mixed ...$args): array
     {
         return [
             [

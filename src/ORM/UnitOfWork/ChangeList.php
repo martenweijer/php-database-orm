@@ -17,6 +17,9 @@ class ChangeList
         $this->unitOfWork = $unitOfWork;
     }
 
+    /**
+     * @return EntityState[]
+     */
     public function determineChanges(): array
     {
         $entityStates = [];
@@ -54,7 +57,6 @@ class ChangeList
         $snapshot = $this->unitOfWork->getSnapshot($entity);
 
         foreach ($entityMap->getProperties() as $propertyMap) {
-            /** @var PropertyMap $propertyMap */
             if ($propertyMap->getValue($entity) !== $propertyMap->getValue($snapshot)) {
                 return true;
             }

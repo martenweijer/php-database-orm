@@ -40,10 +40,9 @@ class EntityHydrator implements Hydrator
         return $entity;
     }
 
-    protected function doHydrate(array $row, EntityMap $entityMap, $entity, EntityManager $entityManager): void
+    protected function doHydrate(array $row, EntityMap $entityMap, object $entity, EntityManager $entityManager): void
     {
         foreach ($entityMap->getProperties() as $propertyMap) {
-            /** @var PropertyMap $propertyMap */
             if (!array_key_exists($column = $propertyMap->getColumn(), $row)) {
                 throw new \InvalidArgumentException(sprintf('Property "%s" (column: "%s") not found in resultset for entity "%s".',
                     $propertyMap->getName(),
@@ -51,15 +50,17 @@ class EntityHydrator implements Hydrator
                     $entityMap->getClass()));
             }
 
-            $propertyMap->setValue($entity, $this->valueConverter->convertFromSqlValue($row[$column], $propertyMap));
+            /** @var string|float|int|bool|null $value */
+            $value = $row[$column];
+            $propertyMap->setValue($entity, $this->valueConverter->convertFromSqlValue($value, $propertyMap));
         }
 
         foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
-            /** @var OneToOneMap $oneMapping */
             if (!array_key_exists($column = $oneMapping->getColumn(), $row)) {
                 continue;
             }
 
+            /** @var float|int|string|null $identifier */
             $identifier = $row[$column];
 
             if ($identifier !== null) {
@@ -70,7 +71,7 @@ class EntityHydrator implements Hydrator
 
                 $targetEntityMap = $this->configuration->retrieveEntityMap($oneMapping->getTargetClass());
 
-                $callable = function() use($targetEntityMap, $entityManager, $oneMapping, $identifier) {
+                $callable = function() use($targetEntityMap, $entityManager, $oneMapping, $identifier): object {
                     $entities = $entityManager->load($oneMapping->getTargetClass())
                         ->findBy([
                             $targetEntityMap->getIdentity()->getColumn() => $identifier
@@ -80,6 +81,7 @@ class EntityHydrator implements Hydrator
                         throw new EntityNotFoundException();
                     }
 
+                    /** @var object[] $entities */
                     return $entities[0];
                 };
 
@@ -90,7 +92,7 @@ class EntityHydrator implements Hydrator
                         $callable
                     );
                 } else {
-                    $targetEntity = $entityManager->find($oneMapping->getTargetClass(), $row[$column]);
+                    $targetEntity = $entityManager->find($oneMapping->getTargetClass(), $identifier);
                 }
 
                 $oneMapping->setValue($entity, $targetEntity);
@@ -100,11 +102,9 @@ class EntityHydrator implements Hydrator
         }
 
         foreach ($entityMap->getOneToManyMappings() as $manyMapping) {
-            /** @var OneToManyMap $manyMapping */
-
             $targetEntityMap = $this->configuration->retrieveEntityMap($manyMapping->getTargetClass());
 
-            $callable = function(EntityCollection $collection) use($targetEntityMap, $entityManager, $manyMapping, $entityMap, $entity) {
+            $callable = function(EntityCollection $collection) use($targetEntityMap, $entityManager, $manyMapping, $entityMap, $entity): void {
                 $entities = $entityManager->load($targetEntityMap->getClass())
                     ->findBy([
                         $manyMapping->getColumn() => $entityMap->getIdentity()->getValue($entity)
@@ -120,6 +120,7 @@ class EntityHydrator implements Hydrator
 
     protected function retrieveEntity(array $row, EntityMap $entityMap): object
     {
+        /** @var string|int|float $identifier */
         $identifier = $row[$entityMap->getIdentity()->getColumn()];
 
         if ($this->unitOfWork->isEntityAddedToIdentityMap($entityMap->getClass(), $identifier)) {

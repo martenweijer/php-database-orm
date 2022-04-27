@@ -6,7 +6,7 @@ use Electronics\Database\ORM\Repositories\Repository;
 
 interface EntityManager
 {
-    function find(string $entityClass, mixed $identifier): object;
+    function find(string $entityClass, float|int|string $identifier): object;
     function load(string $entityClass): Repository;
 
     function add(object $entity): void;
