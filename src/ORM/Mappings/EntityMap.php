@@ -9,9 +9,12 @@ class EntityMap
     protected ?string $connection;
     protected \ReflectionClass $reflectionClass;
 
-    protected ?PropertyMap $identity;
+    protected ?PropertyMap $identity = null;
+    /** @var OneToOneMap[] */
     protected array $oneToOneMappings = [];
+    /** @var OneToManyMap[] */
     protected array $oneToManyMappings = [];
+    /** @var PropertyMap[] */
     protected array $properties = [];
 
     public function __construct(string $class, string $table, ?string $connection, \ReflectionClass $reflectionClass)
@@ -42,8 +45,12 @@ class EntityMap
         return $this->connection;
     }
 
-    public function getIdentity(): ?PropertyMap
+    public function getIdentity(): PropertyMap
     {
+        if ($this->identity === null) {
+            throw new \RuntimeException(sprintf('No @Id found on entity "%s".', $this->class));
+        }
+
         return $this->identity;
     }
 
@@ -52,6 +59,9 @@ class EntityMap
         $this->identity = $identity;
     }
 
+    /**
+     * @return PropertyMap[]
+     */
     public function getProperties(): array
     {
         return $this->properties;
@@ -76,6 +86,9 @@ class EntityMap
         $this->oneToOneMappings[] = $map;
     }
 
+    /**
+     * @return OneToOneMap[]
+     */
     public function getOneToOneMappings(): array
     {
         return $this->oneToOneMappings;
@@ -86,6 +99,9 @@ class EntityMap
         $this->oneToManyMappings[] = $map;
     }
 
+    /**
+     * @return OneToManyMap[]
+     */
     public function getOneToManyMappings(): array
     {
         return $this->oneToManyMappings;

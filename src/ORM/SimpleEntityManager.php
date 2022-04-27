@@ -17,7 +17,7 @@ class SimpleEntityManager implements EntityManager
         $this->databaseContext = $databaseContext;
     }
 
-    public function find(string $entityClass, mixed $identifier): object
+    public function find(string $entityClass, float|int|string $identifier): object
     {
         return $this->load($entityClass)
             ->find($identifier);
@@ -60,8 +60,6 @@ class SimpleEntityManager implements EntityManager
         $entityStates = $changeList->determineChanges();
 
         foreach ($entityStates as $entityState) {
-            /** @var EntityState $entityState */
-
             switch ($entityState->getState()) {
                 case State::ADDED:
                     $this->databaseContext->getPersister()->insert($entityState->getEntity());

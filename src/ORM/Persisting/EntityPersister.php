@@ -31,7 +31,6 @@ class EntityPersister implements Persister
         $builder = $this->connection->getBuilderFactory()->createInsertBuilder($entityMap->getTable());
 
         foreach ($entityMap->getProperties() as $propertyMap) {
-            /** @var PropertyMap $propertyMap */
             $builder->add(
                 $propertyMap->getColumn(),
                 $this->valueConverter->convertToSqlValue($propertyMap->getValue($entity), $propertyMap)
@@ -39,13 +38,13 @@ class EntityPersister implements Persister
         }
 
         foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
-            /** @var OneToOneMap $oneMapping */
             $relationEntity = $oneMapping->getValue($entity);
 
             if ($relationEntity === null) {
                 continue;
             }
 
+            /** @var string|int|float $relationEntityId */
             $relationEntityId = $this->configuration->retrieveEntityMap($oneMapping->getTargetClass())
                 ->getIdentity()->getValue($relationEntity);
             $builder->add($oneMapping->getColumn(), $relationEntityId);
@@ -66,10 +65,11 @@ class EntityPersister implements Persister
         $builder = $this->connection->getBuilderFactory()->createUpdateBuilder($entityMap->getTable());
 
         $identity = $entityMap->getIdentity();
-        $builder->addConstraint(new Equals($identity->getColumn(), $identity->getValue($entity)));
+        /** @var float|int|string $identifier */
+        $identifier = $identity->getValue($entity);
+        $builder->addConstraint(new Equals($identity->getColumn(), $identifier));
 
         foreach ($entityMap->getProperties() as $propertyMap) {
-            /** @var PropertyMap $propertyMap */
             $builder->set(
                 $propertyMap->getColumn(),
                 $this->valueConverter->convertToSqlValue($propertyMap->getValue($entity), $propertyMap)
@@ -77,9 +77,9 @@ class EntityPersister implements Persister
         }
 
         foreach ($entityMap->getOneToOneMappings() as $oneMapping) {
-            /** @var OneToOneMap $oneMapping */
             $relationEntity = $oneMapping->getValue($entity);
 
+            /** @var string|int|float|null $relationEntityId */
             $relationEntityId = $relationEntity === null ? null : $this->configuration->retrieveEntityMap($oneMapping->getTargetClass())
                 ->getIdentity()->getValue($relationEntity);
             $builder->set($oneMapping->getColumn(), $relationEntityId);
@@ -94,7 +94,9 @@ class EntityPersister implements Persister
         $builder = $this->connection->getBuilderFactory()->createDeleteBuilder($entityMap->getTable());
 
         $identity = $entityMap->getIdentity();
-        $builder->addConstraint(new Equals($identity->getColumn(), $identity->getValue($entity)));
+        /** @var float|int|string $identifier */
+        $identifier = $identity->getValue($entity);
+        $builder->addConstraint(new Equals($identity->getColumn(), $identifier));
 
         $this->connection->execute($builder);
     }

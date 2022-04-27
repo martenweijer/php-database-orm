@@ -5,11 +5,13 @@ namespace Electronics\Database\DBAL\Constraints;
 class In implements Constraint
 {
     protected string $column;
+    /** @var array<float|int|null|string> */
     protected array $values;
 
     public function __construct(string $column, array $values)
     {
         $this->column = $column;
+        /** @var array<float|int|null|string> $values */
         $this->values = $values;
     }
 

@@ -37,6 +37,7 @@ class EntityRepository implements Repository
             throw new EntityNotFoundException();
         }
 
+        /** @var object[] $entities */
         return $entities[0];
     }
 
@@ -48,10 +49,12 @@ class EntityRepository implements Repository
             $builder->setLimit($limit);
         }
 
+        /** @var array<string, string> $orderBy */
         foreach ($orderBy as $column => $direction) {
             $builder->orderBy($column, OrderType::orderTypeFromString($direction));
         }
 
+        /** @var array<string, float|int|string> $criteria */
         foreach ($criteria as $column => $value) {
             $builder->addConstraint(new Equals($column, $value));
         }
@@ -77,6 +80,7 @@ class EntityRepository implements Repository
 
         $entities = [];
         foreach ($statement->fetchAll() as $row) {
+            assert(is_array($row));
             $entities[] = $this->databaseContext->getHydrator()->hydrate($row, $this->entityMap, $this->entityManager);
         }
 

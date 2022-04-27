@@ -14,7 +14,7 @@ class EntityProxyFactory implements ProxyFactory
         $this->prefix = $prefix;
     }
 
-    public function createProxy(EntityMap $entityMap, string $identifier, callable $callable): object
+    public function createProxy(EntityMap $entityMap, float|int|string $identifier, callable $callable): object
     {
         $className = $this->generateProxyClassName($entityMap);
         $this->createProxyClass($entityMap, $className);
@@ -43,14 +43,15 @@ class EntityProxyFactory implements ProxyFactory
     {
         $methods = '';
         foreach ($entityMap->getProperties() as $property) {
-            /** @var PropertyMap $property */
             $method = 'get'. ucfirst($property->getName());
 
-            if (!method_exists($entityMap->getClass(), $method)) {
+            /** @var class-string $class */
+            $class = $entityMap->getClass();
+            if (!method_exists($class, $method)) {
                 continue;
             }
 
-            $returnType = $this->findReturnType(new \ReflectionMethod($entityMap->getClass(), $method));
+            $returnType = $this->findReturnType(new \ReflectionMethod($class, $method));
             if ($returnType) {
                 $returnType = ': '. $returnType;
             }
@@ -84,10 +85,10 @@ class %s extends %s
         eval('?>'. $template);
     }
 
-    private function findReturnType(\ReflectionMethod $reflection): ?string
+    private function findReturnType(\ReflectionMethod $reflection): string
     {
         if (!$reflection->hasReturnType()) {
-            return null;
+            return '';
         }
 
         $type = $reflection->getReturnType();
@@ -96,13 +97,13 @@ class %s extends %s
         }
 
         $returnType = '';
-        foreach ($type->getTypes() as $unionType) {
-            /** @var \ReflectionUnionType $unionType */
+        /** @var \ReflectionUnionType $type */
+        foreach ($type->getTypes() as $namedType) {
             if (!empty($returnType)) {
                 $returnType .= '|';
             }
 
-            $returnType .= $unionType->getName();
+            $returnType .= $namedType->getName();
         }
 
         return $returnType;
